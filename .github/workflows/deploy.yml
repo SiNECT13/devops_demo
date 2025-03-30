@@ -23,10 +23,11 @@ jobs:
       run: ./gradlew build
 
     # SSH key permission 설정
-    - name: 
-      mkdir -p ~/.ssh
-      echo "${{ secrete.SERVER_SSH_KEY }}" > ~/.ssh/id_rsa
-      chmod 600 ~/.ssh/id_rsa      
+    - name: SSH Key permissiion
+      run:
+        mkdir -p ~/.ssh
+        echo "${{ secrete.SERVER_SSH_KEY }}" > ~/.ssh/id_rsa
+        chmod 600 ~/.ssh/id_rsa      
 
     # SSH Key 추가 
     - name: Add SSH key
