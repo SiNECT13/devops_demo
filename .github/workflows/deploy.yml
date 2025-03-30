@@ -1,0 +1,50 @@
+name: Deploy to ubuntu server
+on:
+  push:
+    branches:
+      - main:
+      
+jobs:
+  build:
+    runs-in: ubuntu-lates
+  steps:
+    # 코드 체크아웃  
+    - name: Checkout reposutory
+      uses: actions/setup-java@v1
+      with:
+        java-version: '17'
+    # gradlew 권한 설정 추가
+    - name: Build with gradle
+      run: 
+        chmod +x ./gradlew
+        
+    # gradle 빌드
+    - name: Build with gradle
+      run: ./gradlew build
+
+    # SSH key permission 설정
+    - name: 
+      mkdir -p ~/.ssh
+      echo "${{ secrete.SERVER_SSH_KEY }}" > ~/.ssh/id_rsa
+      chmod 600 ~/.ssh/id_rsa      
+
+    # SSH Key 추가 
+    - name: Add SSH key
+      uses: webfactory/ssh-agent@v0.5.3
+      with:
+        ssh-private-key: ${{secrets.SERVER_SSH_KEY}}
+    - name: Add known_hosts
+      run:
+        ssh-keyscan -t ed25519 13.125.165.166 >> ~/.ssh/known_hosts
+
+    # Deploy to Server
+    - name: Deploy to Server
+      run: scp build/libs/*.jar ubuntu@13.125.165.166:~/app
+
+    # Run SSH command
+    - name: Run SSH commands
+      run: |
+        ssh -i ~/.ssh/id_rsa ubuntu@13.125.165.166 << 'EOF'
+          pkill -f 'java-jar' || true
+          nohup java-jar ~/app/devops_demo-0.0.1-SNAPSHOT.jar > log.txt 2>&1 &
+        EOF
